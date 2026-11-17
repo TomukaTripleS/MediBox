@@ -1,3 +1,5 @@
+import logging
+
 from django.db.models import Q
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import serializers, viewsets
@@ -6,6 +8,8 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Kit
 from .permissions import KitPermission
 from .serializers import KitSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class ErrorSerializer(serializers.Serializer):
@@ -44,4 +48,22 @@ class KitViewSet(viewsets.ModelViewSet):
         return Kit.objects.filter(Q(owner=self.request.user) | Q(members=self.request.user)).distinct().order_by("id")
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        kit = serializer.save(owner=self.request.user)
+        logger.info("Kit created: kit_id=%s user_id=%s", kit.pk, self.request.user.pk)
+
+    def perform_update(self, serializer):
+        kit = serializer.save()
+        logger.info("Kit updated: kit_id=%s user_id=%s", kit.pk, self.request.user.pk)
+
+    def perform_destroy(self, instance):
+        kit_id = instance.pk
+        instance.delete()
+        logger.info("Kit deleted: kit_id=%s user_id=%s", kit_id, self.request.user.pk)
+
+    def handle_exception(self, exc):
+        response = super().handle_exception(exc)
+        logger.warning(
+            "Kit request rejected: action=%s user_id=%s status=%s",
+            self.action, self.request.user.pk, response.status_code,
+        )
+        return response

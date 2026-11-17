@@ -54,12 +54,34 @@ MediBox передбачає автоматичні сповіщення все�
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
+cp .env.example .env
+```
+
+У `.env` замініть `replace-with-generated-secret-key` власним випадковим ключем. Згенерувати його можна командою:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(50))"
+```
+
+Змінні середовища:
+
+| Змінна | Значення |
+| --- | --- |
+| `DJANGO_SECRET_KEY` | Обов’язковий секретний ключ; без нього або із заглушкою застосунок не запуститься |
+| `DJANGO_DEBUG` | `1` для локальної розробки, `0` для вимкнення налагодження; за замовчуванням `0` |
+| `DJANGO_ALLOWED_HOSTS` | Дозволені хости через кому, локально `localhost,127.0.0.1` |
+
+Файл `.env` автоматично завантажується через [python-dotenv](https://github.com/theskumar/python-dotenv). Змінні, уже задані в середовищі, мають пріоритет. `.env` не потрапляє до Git; `.env.example` містить лише заглушки. Для SQLite пароль бази даних не потрібен.
+
+Після налаштування `.env`:
+
+```bash
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
 
-У Windows активація: `.venv\Scripts\activate`. Користувачі створюються командою `createsuperuser`; для перевірки спільного доступу створіть кількох. Їхні ID можна переглянути командою:
+У Windows активація: `.venv\Scripts\activate`, копіювання прикладу: `copy .env.example .env`. Користувачі створюються командою `createsuperuser`; для перевірки спільного доступу створіть кількох. Їхні ID можна переглянути командою:
 
 ```bash
 python manage.py shell -c "from django.contrib.auth import get_user_model; print(list(get_user_model().objects.values('id', 'username')))"
@@ -93,7 +115,17 @@ python manage.py shell -c "from django.contrib.auth import get_user_model; print
 python manage.py spectacular --file schema.yml --validate --fail-on-warn
 ```
 
+## Логування
+
+Логи виводяться в консоль і записуються у файл `logs/medibox.log` з часом, рівнем і назвою логера. Папка створюється автоматично та не потрапляє до Git. Коли файл досягає 1 МіБ, починається новий; зберігаються до трьох попередніх файлів (`medibox.log.1`–`medibox.log.3`).
+
+Успішне створення, редагування та видалення аптечки записуються на рівні `INFO`. Відхилені запити (невалідні дані, відсутня автентифікація, недостатні права або відсутня аптечка) — на рівні `WARNING`.
+
+Логи операцій містять лише ID аптечки й користувача, логи відмов — назву дії, ID користувача та HTTP-статус. Тіла запитів, назви аптечок, паролі й токени не записуються.
+
 ## Тести
+
+Перед запуском установіть залежності й налаштуйте `.env`, як описано вище.
 
 ```bash
 python -m pytest
@@ -102,7 +134,7 @@ python -m pytest --cov --cov-report=term-missing
 
 Фікстури в `tests/conftest.py` створюють користувачів, аптечку та API-клієнти. Перевіряються CRUD, права доступу, неправильні дані, JWT і документація API. Тестова база створюється автоматично.
 
-Результат: **38 тестів, покриття 99%** коду `config` і `kits` без міграцій та WSGI. Звіт виводиться в термінал; за умовою завдання його потрібно скопіювати в опис Pull Request. Повторно переглянути звіт після запуску тестів з `--cov`:
+Результат: **40 тестів, покриття 98%** коду `config` і `kits` без міграцій та WSGI. Звіт виводиться в термінал; за умовою завдання його потрібно скопіювати в опис Pull Request. Повторно переглянути звіт після запуску тестів з `--cov`:
 
 ```bash
 python -m coverage report
