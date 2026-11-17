@@ -1,0 +1,8 @@
+[run]
+source = config, kits
+omit =
+    */migrations/*
+    config/wsgi.py
+
+[report]
+show_missing = True
