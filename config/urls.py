@@ -4,9 +4,11 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from kits.views import KitViewSet
+from medicines.views import MedicineViewSet
 
 router = DefaultRouter()
 router.register("kits", KitViewSet, basename="kit")
+router.register(r"kits/(?P<kit_pk>\d+)/medicines", MedicineViewSet, basename="kit-medicine")
 
 urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),

@@ -1,5 +1,5 @@
 [run]
-source = config, kits
+source = config, kits, medicines
 omit =
     */migrations/*
     config/wsgi.py

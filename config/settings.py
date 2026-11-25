@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "kits",
+    "medicines",
 ]
 MIDDLEWARE = ["django.middleware.common.CommonMiddleware"]
 ROOT_URLCONF = "config.urls"
@@ -69,5 +70,6 @@ LOGGING = {
     },
     "loggers": {
         "kits": {"handlers": ["console", "file"], "level": "INFO"},
+        "medicines": {"handlers": ["console", "file"], "level": "INFO"},
     },
 }
